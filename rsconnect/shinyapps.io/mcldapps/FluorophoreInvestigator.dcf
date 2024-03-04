@@ -1,0 +1,12 @@
+name: FluorophoreInvestigator
+title: FluorophoreInvestigator
+username: mcldapps
+account: mcldapps
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 9589415
+bundleId: 7568846
+url: https://mcldapps.shinyapps.io/FluorophoreInvestigator/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
