@@ -64,16 +64,17 @@ EX6filtmax <- c(490, 526, 560, 588, 643, 698)
 
 filt3name <- c("Blue", "Green", "Red")
 filt6name <- c("Blue", "Teal", "Green", "Yellow", "Red", "Infra-Red")
+filtheaders <- c("filtmin", "filtmax", "filtname")
 
 EM3filters <- data.frame(EM3filtmin, EM3filtmax, filt3name)
-colnames(EM3filters) <- c("filtmin", "filtmax", "filtname")
+colnames(EM3filters) <- filtheaders
 EX3filters <- data.frame(EX3filtmin, EX3filtmax, filt3name)
-colnames(EX3filters) <- c("filtmin", "filtmax", "filtname")
+colnames(EX3filters) <- filtheaders
 
 EM6filters <- data.frame(EM6filtmin, EM6filtmax, filt6name)
-colnames(EM6filters) <- c("filtmin", "filtmax", "filtname")
+colnames(EM6filters) <- filtheaders
 EX6filters <- data.frame(EX6filtmin, EX6filtmax, filt6name)
-colnames(EX6filters) <- c("filtmin", "filtmax", "filtname")
+colnames(EX6filters) <- filtheaders
 
 Filters <- bind_rows(EX3filters, EM3filters, EX6filters, EM6filters, .id = "id") %>%
   mutate(Prism = ifelse((id == 1 | id == 2), "Prism3", "Prism6"),
@@ -91,18 +92,6 @@ Fluos <- Spectra %>%
 fluo_palette <- grDevices::rainbow(length(unique(Fluos$Fluorophore)), start = 0, end = .7, rev = TRUE)
 fluo_palette <- setNames(fluo_palette, unique(Fluos$Fluorophore))
 
-rectangle <- function(min = 0, max = 1, color = "#660000") {
-  list(
-    type = "rect",
-    fillcolor = color,
-    x0 = min,
-    x1 = max,
-    xref = "paper",
-    y0 = -Inf,
-    y1 = Inf
-  )
-}
-
 # Define UI
 ui <- fluidPage(
 
@@ -114,7 +103,7 @@ ui <- fluidPage(
         sidebarPanel(
             selectInput("Prism",
                         "Select Prism machine:",
-                        choices = c("Prism3", "Prism6")),
+                        choices = c("Prism3", "Prism6", "Custom")),
             selectInput("Type",
                         "Select Spectrum Type:",
                         choices = c("Emission", "Excitation")),
