@@ -123,13 +123,15 @@ ui <- fluidPage(
     # Show a plot of the generated distribution
     mainPanel(
       fluidRow(
-        plotOutput("FluoPlot")
+        plotOutput("spectraPlot")
+      ),
+      fluidRow(
+        downloadButton('downloadPlot', 'Download Plot')
       ),
       fluidRow(
         h4("About this tool"),
-        HTML(readLines("instructions.txt"))
-      ),
-      fluidRow(tableOutput("table"))
+        HTML(readLines("instructions.txt")) # information how to use
+      )
     )
   )
   
@@ -138,6 +140,7 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   
+  # generate conditional custom filters input
   output$customFilt <- renderUI({
     
     num <- as.integer(input$filtnum)
@@ -156,6 +159,7 @@ server <- function(input, output) {
     
   })
   
+  # generate data for custom filters
   customData <- reactive({
     
     num <- as.integer(input$filtnum)
@@ -174,11 +178,8 @@ server <- function(input, output) {
     
   })
   
-  output$table <- renderTable({
-    customData()
-  })
-  
-  output$FluoPlot <- renderPlot({
+  # generate plot
+  fluoPlot <- function(){
     
     if (input$Prism == "Prism3") {
       colours = rainbow[c(7, 5, 1)]
@@ -189,7 +190,7 @@ server <- function(input, output) {
     }
     
     if (input$Prism != "Custom") {
-      ggplot() +
+      fluoPlot <- ggplot() +
         geom_rect(data = filter(Filters, Prism == input$Prism, Type == input$Type), 
                   aes(xmin = filtmin, xmax = filtmax, 
                       ymin = -Inf, ymax = Inf, 
@@ -209,7 +210,7 @@ server <- function(input, output) {
         ylim(0, 100) +
         theme_cowwid()
     } else {
-      ggplot() +
+      fluoPlot <- ggplot() +
         geom_rect(data = customData(),
                   aes(xmin = as.numeric(filtmin), xmax = as.numeric(filtmax), 
                       ymin = -Inf, ymax = Inf, 
@@ -229,7 +230,20 @@ server <- function(input, output) {
         ylim(0, 100) +
         theme_cowwid()
     }
-
+    
+    fluoPlot
+    
+  }
+  
+  # plot output
+  output$spectraPlot <- renderPlot(fluoPlot())
+  
+  # download plot
+  output$downloadPlot <- downloadHandler(
+    filename = "FluoSpectraPlot.png",
+    content = function(file) {
+      device <- function(..., width, height) grDevices::png(..., width = 12, height = 8, res = 900, units = "in")
+      ggsave(file, plot = fluoPlot(), device = device)
     })
   
 }
