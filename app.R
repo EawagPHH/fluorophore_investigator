@@ -53,6 +53,10 @@ theme_cowwid <- function(base_size = 2) {
 
 rainbow <- c("#A81705", "#E53935", "#FFB74D", "#FFEE58", "#388E5A", "#42A5F5", "#0F4C81", "#8756D5", "#BBBBBB")
 
+# Define filter parameters
+filtheaders <- c("filtmin", "filtmax", "filtname")
+
+# Define Stilla machine filters
 EM3filtmin <- c(495, 560, 655)
 EM3filtmax <- c(515, 610, 720)
 EX3filtmin <- c(415, 530, 630)
@@ -65,7 +69,6 @@ EX6filtmax <- c(490, 526, 560, 588, 643, 698)
 
 filt3name <- c("Blue", "Green", "Red")
 filt6name <- c("Blue", "Teal", "Green", "Yellow", "Red", "Infra-Red")
-filtheaders <- c("filtmin", "filtmax", "filtname")
 
 EM3filters <- data.frame(EM3filtmin, EM3filtmax, filt3name)
 colnames(EM3filters) <- filtheaders
@@ -77,9 +80,41 @@ colnames(EM6filters) <- filtheaders
 EX6filters <- data.frame(EX6filtmin, EX6filtmax, filt6name)
 colnames(EX6filters) <- filtheaders
 
-Filters <- bind_rows(EX3filters, EM3filters, EX6filters, EM6filters, .id = "id") %>%
-  mutate(Prism = ifelse((id == 1 | id == 2), "Prism3", "Prism6"),
-         Type = ifelse(id == 1 | id == 3, "Excitation", "Emission")) %>%
+# Define Quiagen machine filters
+EMQ2filtmin <- c(518, 550)
+EMQ2filtmax <- c(548, 564)
+EXQ2filtmin <- c(463, 514)
+EXQ2filtmax <- c(503, 535)
+
+EMQ5filtmin <- c(518, 550, 580, 611, 654)
+EMQ5filtmax <- c(548, 564, 606, 653, 692)
+EXQ5filtmin <- c(463, 514, 543, 570, 590)
+EXQ5filtmax <- c(503, 535, 565, 596, 640)
+
+filtQ2name <- c("Green", "Yellow")
+filtQ5name <- c("Green", "Yellow", "Orange", "Red", "Crimson")
+
+EMQ2filters <- data.frame(EMQ2filtmin, EMQ2filtmax, filtQ2name)
+colnames(EMQ2filters) <- filtheaders
+EXQ2filters <- data.frame(EXQ2filtmin, EXQ2filtmax, filtQ2name)
+colnames(EXQ2filters) <- filtheaders
+
+EMQ5filters <- data.frame(EMQ5filtmin, EMQ5filtmax, filtQ5name)
+colnames(EMQ5filters) <- filtheaders
+EXQ5filters <- data.frame(EXQ5filtmin, EXQ5filtmax, filtQ5name)
+colnames(EXQ5filters) <- filtheaders
+
+# Combine all filter information to create data plot
+Filters <- bind_rows(EX3filters, EM3filters, 
+                     EX6filters, EM6filters,
+                     EXQ2filters, EMQ2filters,
+                     EXQ5filters, EMQ5filters,
+                     .id = "id") %>%
+  mutate(id = as.numeric(id)) %>%
+  mutate(Machine = ifelse((id == 1 | id == 2), "Prism3", 
+                        ifelse((id == 3 | id == 4), "Prism6", 
+                               ifelse((id == 5 | id == 6), "QIAcuity One 2-plex", "QIAcuity One 5-plex"))),
+         Type = ifelse((id %% 2) == 1, "Excitation", "Emission")) %>%
   select(-id)
 
 Spectra <- read_csv("data/AAT_Fluo_Data.csv", show_col_types = FALSE) 
@@ -102,10 +137,12 @@ ui <- fluidPage(
   # Sidebar with a slider input for number of bins 
   sidebarLayout(
     sidebarPanel(
-      selectInput("Prism",
-                  "Select machine:",
-                  choices = c("Prism3", "Prism6", "Custom")),
-      conditionalPanel(condition = "input.Prism == 'Custom'",
+      selectInput("Machine",
+                  "Select dPCR Machine:",
+                  choices = c("Prism3", "Prism6", 
+                              "QIAcuity One 2-plex", "QIAcuity One 5-plex", 
+                              "Custom")),
+      conditionalPanel(condition = "input.Machine == 'Custom'",
                        numericInput("filtnum", 
                                     "Enter the number of filters the machine contains", 
                                     value = 3, 
@@ -148,10 +185,10 @@ server <- function(input, output) {
     lapply(1:num, function(i) {
       splitLayout(
         numericInput(paste0("input_", i, "_min"), 
-                     label = paste0("Enter filter ", i, " minimum wavelength"), 
+                     label = paste0("Filter ", i, " min wavelength"), 
                      value = 450),
         numericInput(paste0("input_", i, "_max"), 
-                     label = paste0("Enter filter ", i, " maximum wavelength"), 
+                     label = paste0("Filter ", i, " max wavelength"), 
                      value = 500)
       )
       
@@ -181,17 +218,21 @@ server <- function(input, output) {
   # generate plot
   fluoPlot <- function(){
     
-    if (input$Prism == "Prism3") {
+    if (input$Machine == "Prism3") {
       colours = rainbow[c(7, 5, 1)]
-    } else if (input$Prism == "Prism6") {
+    } else if (input$Machine == "Prism6") {
       colours = rainbow[c(7, 5, 1, 2, 6, 3)]
+    } else if (input$Machine == "QIAcuity One 2-plex") {
+      colours = rainbow[c(5, 4)]
+    } else if (input$Machine == "QIAcuity One 5-plex") {
+      colours = rainbow[c(1, 5, 3, 2, 4)]
     } else {
       colours = grDevices::rainbow(input$filtnum, start = 0, end = .65, rev = TRUE)
     }
     
-    if (input$Prism != "Custom") {
+    if (input$Machine != "Custom") {
       fluoPlot <- ggplot() +
-        geom_rect(data = filter(Filters, Prism == input$Prism, Type == input$Type), 
+        geom_rect(data = filter(Filters, Machine == input$Machine, Type == input$Type), 
                   aes(xmin = filtmin, xmax = filtmax, 
                       ymin = -Inf, ymax = Inf, 
                       fill = factor(filtname)), alpha = 0.2) +
