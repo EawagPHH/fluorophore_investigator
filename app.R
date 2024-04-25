@@ -111,10 +111,13 @@ Filters <- bind_rows(EX3filters, EM3filters,
                      EXQ5filters, EMQ5filters,
                      .id = "id") %>%
   mutate(id = as.numeric(id)) %>%
-  mutate(Machine = ifelse((id == 1 | id == 2), "Prism3", 
+  mutate(Machine = as.factor(ifelse((id == 1 | id == 2), "Prism3", 
                         ifelse((id == 3 | id == 4), "Prism6", 
-                               ifelse((id == 5 | id == 6), "QIAcuity One 2-plex", "QIAcuity One 5-plex"))),
-         Type = ifelse((id %% 2) == 1, "Excitation", "Emission")) %>%
+                               ifelse((id == 5 | id == 6), "QIAcuity One 2-plex", "QIAcuity One 5-plex")))),
+         Type = as.factor(ifelse((id %% 2) == 1, "Excitation", "Emission")),
+         filtname = factor(filtname,
+                           levels = c("Blue", "Teal", "Green", "Yellow", "Orange", "Red", "Infra-Red", "Crimson"),
+                           ordered = T)) %>%
   select(-id)
 
 Spectra <- read_csv("data/AAT_Fluo_Data.csv", show_col_types = FALSE) 
@@ -221,11 +224,11 @@ server <- function(input, output) {
     if (input$Machine == "Prism3") {
       colours = rainbow[c(7, 5, 1)]
     } else if (input$Machine == "Prism6") {
-      colours = rainbow[c(7, 5, 1, 2, 6, 3)]
+      colours = rainbow[c(7, 6, 5, 3, 2, 1)]
     } else if (input$Machine == "QIAcuity One 2-plex") {
       colours = rainbow[c(5, 4)]
     } else if (input$Machine == "QIAcuity One 5-plex") {
-      colours = rainbow[c(1, 5, 3, 2, 4)]
+      colours = rainbow[c(5, 4, 3, 2, 1)]
     } else {
       colours = grDevices::rainbow(input$filtnum, start = 0, end = .65, rev = TRUE)
     }
