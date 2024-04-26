@@ -15,7 +15,7 @@ multiplesheets <- function(fname) {
   return(df)
 }
 
-AATDataPath <- "//eawag/userdata/mcleodra/My Documents/03 Bioinformatics Tool/FluorophoreInvestigator/data/AAT_Fluo_Data.xlsx"
+AATDataPath <- "data/AAT_Fluo_Data.xlsx"
 FormattedData <- multiplesheets(AATDataPath) %>%
   bind_rows(.id = 'variable') %>%
   select(-'...3') %>%
@@ -25,4 +25,4 @@ FormattedData <- multiplesheets(AATDataPath) %>%
   pivot_longer(cols = -Fluorophore, names_to = c("Type", ".value"), names_sep = " ")
 
 
-write_csv(FormattedData, "//eawag/userdata/mcleodra/My Documents/03 Bioinformatics Tool/FluorophoreInvestigator/data/AAT_Fluo_Data.csv")
+write_csv(FormattedData, "data/AAT_Fluo_Data.csv")
