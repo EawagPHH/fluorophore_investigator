@@ -12,7 +12,7 @@ The tool can be accessed [here](https://phh-eawag.shinyapps.io/FluorophoreInvest
 
 The graph shows the wavelength range covered by a particular detection channel of a dPCR system. This can be altered using the drop-down menu in the sidebar by selecting the machine you are using and spectrum type you are investigating.
 
-Currently the channels of the Prism3 and Prism6 (Stilla Technologies) and the QIAcuity One 2-plex and 5-plex are pre-defined. If you are using a different machine select _Custom_, indicate how many detection channels your machine has and then input the minimum and maximum wavelengths. Make sure to indicate the number of detection channels first as changing this value re-sets the wavelength inputs.
+Currently the channels of the Prism3 and Prism6 (Stilla Technologies) and the QIAcuity One 2-plex and 5-plex (QIAGEN) are pre-defined. If you are using a different machine select _Custom_, indicate how many detection channels your machine has and then input the minimum and maximum wavelengths. Make sure to indicate the number of detection channels first as changing this value re-sets the wavelength inputs.
 
 Fluorophore spectra can be displayed by checking the box beside the name of the fluorophore in the list.
 
